@@ -22,22 +22,26 @@ void ChargeAnalysis::ChargeAnalysisInit(string rhofilenamein,vector<double> boxs
 
 
 void ChargeAnalysis::readrho(string rhofilename) {
-	ifstream infile;
-	string lineStr;
+	ifstream file;
+	vector<stringstream>buff;
 	vector<double> rho0;
-	//int index2 = 0;
-	int iread=0, jread=0, kread=0;
-	int test = 0;
 	nxyz.resize(3);
-	infile.open(rhofilename, ios::in);
-	if(infile) {
-		if (getline(infile, lineStr))
-		{
-			stringstream ss(lineStr);
-			string str;
-			int index = 0;
+	buff.resize(threadnum);
+	file.open(rhofilename, ios::in|ios::binary);
+	if (file){
+
+		stringstream ss;
+		string str;
+		string temp;
+		int index = 0;
+		int datanumperline=0;
+		ss.str("");
+		if(getline(file,temp)){
+			ss.clear();
+			ss.str("");
+			ss << temp;
 			while (ss >> str)
-			{	
+			{
 				nxyz[index] = int(atof(str.c_str()));
 				index++;
 				if (index == 3)
@@ -46,37 +50,76 @@ void ChargeAnalysis::readrho(string rhofilename) {
 				}
 			}
 		}
-		rho = vector<vector<vector<double>>>(nxyz[0], vector<vector<double>>(nxyz[1], vector<double>(nxyz[2], 0)));
-		while (getline(infile, lineStr))
+		if (debug) {
+			gridtest = vector<vector<vector<int>>>(nxyz[0], vector<vector<int>>(nxyz[1], vector<int>(nxyz[2], 0)));
+		}
+		int linesbegin = file.tellg();
+		if (getline(file, temp))
 		{
-			stringstream ss(lineStr);
-			string str;
-			while (ss >> str){
-				//rho0.emplace_back(atof(str.c_str()));
-
-				rho[iread][jread][kread] = (atof(str.c_str()));
-				iread++;
-				if (iread >= nxyz[1]) { iread = 0; jread++; }
-				if (jread >= nxyz[0]) { jread = 0; kread++; }
-				//index2++;
-				//test++;
+			ss.clear();
+			ss.str("");
+			ss << temp;
+			while (ss >> str)
+			{
+				datanumperline++;
 			}
 		}
-		/*
-		for (int i = 0; i < nxyz[0]; i++) {
-			for (int j = 0; j < nxyz[1]; j++) {
-				for (int k = 0; k < nxyz[2]; k++) {
-					rho[i][j][k] = rho0[k * nxyz[0] * nxyz[1] + j * nxyz[0] + i];
-					test++;
+		int linelength = int(file.tellg()) - linesbegin;
+		file.seekg(0, file.end);
+		unsigned long long  linesend = file.tellg();
+		file.seekg(linesbegin, file.beg);
+		int linenum = (linesend - linesbegin) / linelength + 1;
+		int linenumperthread = linenum / threadnum + 1;
+		int p = linesbegin;
+		char* temp2 = new char[linenumperthread * linelength];
+		for (int i = 0; i < threadnum;i++)
+		{
+			file.read(temp2, linenumperthread * linelength);
+			buff[i] << temp2;
+			if (i != threadnum - 1)
+			{
+				file.seekg(p + linenumperthread * linelength, file.beg);
+			}
+			{
+				file.close();
+			}
+			p += linenumperthread * linelength;
+
+		}
+		delete[]temp2;
+
+	
+		rho = vector<vector<vector<double>>>(nxyz[0], vector<vector<double>>(nxyz[1], vector<double>(nxyz[2], 0)));
+		omp_set_num_threads(threadnum);
+		#pragma omp parallel
+		{	
+			stringstream ss3;
+			string str3;
+			string temp3;
+			int threadid = omp_get_thread_num();
+			//int threadid = 1;
+			int iread = -1, jread = -1, kread = -1, all = (threadid * linenumperthread*datanumperline),count=0;
+			jread = all / nxyz[0];
+			iread = all % nxyz[0];
+			kread = jread / nxyz[1];
+			jread = jread % nxyz[1];
+			while (getline(buff[threadid], temp3 )&& count< linenumperthread * datanumperline) {
+				ss3.clear();
+				ss3.str("");
+				ss3 << temp3;
+				while (ss3 >> str3 && count < linenumperthread * datanumperline) {
+					rho[iread][jread][kread] = (atof(str3.c_str()));
+					count++;
+					//gridtest[iread][jread][kread]++;
+					iread++;
+					if (iread >= nxyz[1]) { iread = 0; jread++; }
+					if (jread >= nxyz[0]) { jread = 0; kread++; }
 				}
 			}
-		}*/
-
+		}
 	}
 
-	if (debug) {
-		gridtest = vector<vector<vector<int>>>(nxyz[0], vector<vector<int>>(nxyz[1], vector<int>(nxyz[2], 0)));
-	}
+
 
 	dx3s.resize(3);
 	for (int i=0; i < 3; i++)

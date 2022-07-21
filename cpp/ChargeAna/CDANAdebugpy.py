@@ -14,12 +14,17 @@ sys1 = pc.System()
 sys1.read_inputfile('POSCAR', format=format)#format{'lammps-dump', 'poscar', 'ase', 'mdtraj'}
 
 bohr=0.529177208607388
-
+threadnum=14
 cChargcal=cChargeAnalysis.ChargeAnalysis()
+cChargcal.threadnum=threadnum
 cChargcal.debug=True
-cChargcal.ChargeAnalysisInit('CHGCAR',np.sum(sys1.box,axis=0)/bohr,sys1.natoms)
-
-
+cChargcal.ChargeAnalysisInit('atlas.den',np.sum(sys1.box,axis=0)/bohr,sys1.natoms)
+a=np.array(cChargcal.gridtest)
+print(np.sum(a))
+print(np.histogram(a.flatten()))
+plt.hist(a.flatten())
+plt.show()
+'''
 modes=[2]
 #modes=[3]# 0 for voronoisum 1 for cutoffsum 2 for pdf 3 for boo
 modevoronoisum=0
@@ -27,9 +32,9 @@ modecutoffsum=1
 modepdf=2
 modeboo=3
 allmodenum=4
-threadnum=14
+
 CDresults=[[] for i in range(allmodenum)]
-cChargcal.threadnum=threadnum
+
 for mode in modes:
     if mode==3:
         boocut=3.645/3/bohr
@@ -79,3 +84,4 @@ for mode in modes:
             den[atom.loc]=cChargcal.SumMethod_voro(np.array(v3s)/bohr,np.array(atom.vertex_positions)/bohr)
             #print(den[atom.loc])
         CDresults[mode]=den
+    '''
