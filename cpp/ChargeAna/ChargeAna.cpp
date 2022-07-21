@@ -70,7 +70,7 @@ void ChargeAnalysis::readrho(string rhofilename) {
 		file.seekg(linesbegin, file.beg);
 		int linenum = (linesend - linesbegin) / linelength + 1;
 		int linenumperthread = linenum / threadnum + 1;
-		int p = linesbegin;
+		unsigned long long p = linesbegin;
 		char* temp2 = new char[linenumperthread * linelength];
 		for (int i = 0; i < threadnum;i++)
 		{
@@ -80,7 +80,7 @@ void ChargeAnalysis::readrho(string rhofilename) {
 			{
 				file.seekg(p + linenumperthread * linelength, file.beg);
 			}
-			{
+			else{
 				file.close();
 			}
 			p += linenumperthread * linelength;
