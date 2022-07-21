@@ -3,11 +3,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommand>C:\Users\baizh\anaconda3\python.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>debugpy.py</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>CDANAdebugpy.py</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommand>C:\Users\baizh\anaconda3\python.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>debugpy.py</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>CDANAdebugpy.py</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
